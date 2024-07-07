@@ -30,6 +30,34 @@ const ProductDetail = ({ formik }) => {
     }
   };
 
+  const handleImageChange = async (event, setFieldValue) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // setSelectedImage(URL.createObjectURL(file));
+    await getImageDataUrl(file, setFieldValue);
+  };
+
+  const getImageDataUrl = async (file, setFieldValue) => {
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', 'Ibelachi_Test_Run');
+    formData.append('api_key', '968631257356497');
+
+    try {
+      const response = await fetch('https://api.cloudinary.com/v1_1/verxioaventor/image/upload', {
+        method: 'POST',
+        body: formData
+      });
+      const results = await response.json();
+      setFieldValue('bannerImg', results.url);
+    } catch (error) {
+      console.log('Error uploading image:', error);
+    }
+  };
+
   return (
     <form>
       <Grid container spacing={2}>
@@ -47,16 +75,17 @@ const ProductDetail = ({ formik }) => {
           />
         </Grid>
         <Grid item xs={12}>
-          <Button
-            variant="contained"
-            component="label"
-            startIcon={<PhotoCamera />}
-          >
+        <Button variant="contained" component="label" startIcon={<PhotoCamera />}>
             Upload Product Image
             <input
+              name="productImage"
               type="file"
+              capture="environment"
               hidden
-              onChange={(event) => formik.setFieldValue('productImage', event.currentTarget.files[0])}
+              accept="image/*"
+              onChange={(e) => {
+                handleImageChange(e, setFieldValue);
+              }}
             />
           </Button>
           {formik.values.productImage && (
